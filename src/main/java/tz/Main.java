@@ -32,7 +32,6 @@ public class Main {
             TicketList ticketList = objectMapper.readValue(new File(filePath), TicketList.class);
             List<Ticket> tickets = ticketList.getTickets();
 
-            // Оставим только рейсы между Владивостоком и Тель-Авив
             List<Ticket> filteredTickets = tickets.stream()
                     .filter(ticket -> "VVO".equals(ticket.getOrigin()) && "TLV".equals(ticket.getDestination()))
                     .collect(Collectors.toList());
@@ -51,10 +50,24 @@ public class Main {
             }
 
             System.out.println("Minimum flight time between Vladivostok and Tel-Aviv for each carrier: ");
-            leastDurationPerCarrier.forEach((c, d) ->
-                    System.out.println(c + ": " + d));
+            leastDurationPerCarrier.forEach((c, d) -> {
+                long hours = d.toHours();
+                long minutes = d.minusHours(hours).toMinutes();
+                System.out.println(c + ": " + hours + " ч " + minutes + " мин");
+            });
 
+            List<Integer> price = filteredTickets.stream()
+                    .map(Ticket::getPrice)
+                    .sorted()
+                    .collect(Collectors.toList());
 
+            double median = calcMedian(price);
+            double avg = price.stream().mapToInt(Integer::intValue).average().orElse(0);
+            double diff = avg - median;
+
+            System.out.println("Median: " + median);
+            System.out.println("Average: " + avg);
+            System.out.println("Difference between median price and average :" + diff);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -66,5 +79,15 @@ public class Main {
         LocalTime arrival = LocalTime.parse(arrivalTime, TIME_FORMATTER);
 
         return Duration.between(departure, arrival);
+    }
+
+    private static double calcMedian(List<Integer> price) {
+        int size = price.size();
+
+        if (size % 2 == 0) {
+            return (price.get(size / 2 - 1) + price.get(size / 2)) / 2.0;
+        } else {
+            return price.get(size / 2);
+        }
     }
 }
