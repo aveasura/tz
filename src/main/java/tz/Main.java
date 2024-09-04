@@ -79,10 +79,7 @@ public class Main {
             arrival = arrival.plusDays(1);
         }
 
-        Duration duration = Duration.between(departure, arrival);
-        System.out.println("Calculated Duration: " + duration);
-
-        return duration;
+        return Duration.between(departure, arrival);
     }
 
     private static double calcMedian(List<Integer> price) {
