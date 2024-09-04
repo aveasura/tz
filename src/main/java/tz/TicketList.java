@@ -1,6 +1,5 @@
 package tz;
 
-
 import java.util.List;
 
 public class TicketList {
