@@ -12,22 +12,28 @@ public class MainTest {
 
     @Test
     public void testCalculateFlightDuration() {
+        String departureDate = "14.05.18";
         String departureTime = "10:30";
+
+        String arrivalDate = "14.05.18";
         String arrivalTime = "15:45";
         Duration expectedDuration = Duration.ofHours(5).plusMinutes(15);
 
-        Duration actualDuration = Main.calculateFlightDuration(departureTime, arrivalTime);
+        Duration actualDuration = Main.calculateFlightDuration(departureDate, departureTime, arrivalDate, arrivalTime);
 
         assertEquals(expectedDuration, actualDuration, "The flight time is calculated incorrectly");
     }
 
     @Test
     public void testCalculateFlightDurationCrossMidnight() {
+        String departureDate = "14.05.18";
         String departureTime = "23:15";
+
+        String arrivalDate = "15.05.18";
         String arrivalTime = "01:45";
         Duration expectedDuration = Duration.ofHours(2).plusMinutes(30);
 
-        Duration actualDuration = Main.calculateFlightDuration(departureTime, arrivalTime);
+        Duration actualDuration = Main.calculateFlightDuration(departureDate, departureTime, arrivalDate, arrivalTime);
 
         assertEquals(expectedDuration, actualDuration, "Flight time after midnight is calculated incorrectly");
     }
