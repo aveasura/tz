@@ -1,6 +1,7 @@
 package tz;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
@@ -38,24 +39,30 @@ public class Main {
 
             Map<String, Duration> leastDurationPerCarrier = new HashMap<>();
             for (Ticket ticket : filteredTickets) {
-                Duration duration = timeCalc(ticket.getDepartureDate(), ticket.getDepartureTime(),
-                        ticket.getArrivalDate(), ticket.getArrivalTime());
+                try {
+                    Duration duration = timeCalc(ticket.getDepartureDate(), ticket.getDepartureTime(),
+                            ticket.getArrivalDate(), ticket.getArrivalTime());
 
-                leastDurationPerCarrier.merge(ticket.getCarrier(), duration, (existingDuration, newDuration) ->
-                        existingDuration.compareTo(newDuration) <= 0 ? existingDuration : newDuration);
+                    leastDurationPerCarrier.merge(ticket.getCarrier(), duration, (existingDuration, newDuration) ->
+                            existingDuration.compareTo(newDuration) <= 0 ? existingDuration : newDuration);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Error processing ticket for carrier " + ticket.getCarrier() + ": " + e.getMessage());
+                }
             }
 
             System.out.println("Minimum flight time between Vladivostok and Tel-Aviv for each carrier: ");
             leastDurationPerCarrier.forEach((carrier, time) -> {
-                long days = time.toDays();
-                long hours = time.minusDays(days).toHours();
-                long minutes = time.minusDays(days).minusHours(hours).toMinutes();
+                try {
+                    verifyPositiveDuration(time);
 
-                if ((days | hours | minutes) < 0) {
-                    System.out.println("Прибытие не может быть раньше чем отправление");
+                    long days = time.toDays();
+                    long hours = time.minusDays(days).toHours();
+                    long minutes = time.minusDays(days).minusHours(hours).toMinutes();
+
+                    System.out.println(carrier + ": " + "Days:" + days + ", hours:" + hours + ", min:" + minutes);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Error: " + e.getMessage() + " For carrier: " + carrier);
                 }
-
-                System.out.println(carrier + ": " + "Days:" + days + ", hours:"+ hours + ", min:" + minutes);
             });
 
             List<Integer> price = filteredTickets.stream()
@@ -80,9 +87,12 @@ public class Main {
         String departureDateTime = departureDate + " " + departureTime;
         String arrivalDateTime = arrivalDate + " " + arrivalTime;
 
-        LocalDateTime now = LocalDateTime.now();
         LocalDateTime departure = LocalDateTime.parse(departureDateTime, TIME_FORMATTER);
         LocalDateTime arrival = LocalDateTime.parse(arrivalDateTime, TIME_FORMATTER);
+
+        if (departure.isEqual(arrival)) {
+            throw new IllegalArgumentException("Departure date and time cannot be the same as arrival date and time.");
+        }
 
         return Duration.between(departure, arrival);
     }
@@ -103,10 +113,17 @@ public class Main {
         }
     }
 
-    // Публичные методы для тестирования
+    private static void verifyPositiveDuration(Duration time) {
+        if (time.isNegative()) {
+            throw new IllegalArgumentException("Arrival cannot be before departure.");
+        }
+    }
+
+
     public static Duration calculateFlightDuration(String departureDate, String departureTime, String arrivalDate, String arrivalTime) {
         return timeCalc(departureDate, departureTime, arrivalDate, arrivalTime);
     }
+
     public static double calculateMedian(List<Integer> prices) {
         return calcMedian(prices);
     }

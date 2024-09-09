@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MainTest {
 
@@ -76,5 +76,19 @@ public class MainTest {
         double actualMedian = Main.calculateMedian(prices);
 
         assertEquals(expectedMedian, actualMedian, "The median for an empty list is calculated incorrectly");
+    }
+
+    @Test
+    public void testCalculateFlightDurationWithSameTimes() {
+        String departureDate = "20.08.20";
+        String departureTime = "18:30";
+
+        String arrivalDate = "20.08.20";
+        String arrivalTime = "18:30";
+
+        IllegalArgumentException test = assertThrows(IllegalArgumentException.class, () ->
+                Main.calculateFlightDuration(departureDate, departureTime, arrivalDate, arrivalTime));
+
+        assertEquals("Departure date and time cannot be the same as arrival date and time.", test.getMessage());
     }
 }
